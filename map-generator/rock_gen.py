@@ -85,10 +85,10 @@ def classify_rock(age_map, age_range, basemap):
     # type boundaries
     # as in, rock aged up to this value is how old it is
     # for categorising and creating rock types
-    new_rock_range = int(age_range * 0.2)
-    rock_range_recent = int(age_range * 0.4)
-    rock_range_semirecent = int(age_range * 0.5)
-    rock_range_aged = int(age_range * 0.4)
+    new_rock_range = int(age_range * 0.15)
+    rock_range_recent = int(age_range * 0.35)
+    rock_range_semirecent = int(age_range * 0.4)
+    rock_range_aged = int(age_range * 0.6)
     rock_range_old = int(age_range * 0.8)
     # anything else is ancient
 
@@ -115,11 +115,12 @@ def classify_rock(age_map, age_range, basemap):
             elif age <= rock_range_semirecent:
                 rock_type_map[block_id] = 2 if (general_noise[x,y] < 0.5) else 3
             elif age <= rock_range_aged:
-                rock_type_map[block_id] = (
-                    4 if general_noise < 0.6
-                    else 5 if (binary_blobs[x,y] == False)
-                    else 0
-                )
+                if general_noise[x,y] < 0.6:
+                    rock_type_map[block_id] = 4
+                elif not binary_blobs[x, y]:  # Independent check
+                    rock_type_map[block_id] = 5
+                else:  # Default for aged rocks when neither condition is met
+                    rock_type_map[block_id] = 0
             elif age <= rock_range_old:
                 rock_type_map[block_id] = (
                     5 if (binary_blobs[x,y]==False) else 0

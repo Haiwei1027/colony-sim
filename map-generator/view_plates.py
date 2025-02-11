@@ -4,7 +4,6 @@ from utility import *
 
 import hashlib
 
-
 def plate_color(number):
     hash_object = hashlib.sha256(str(number).encode()).hexdigest()[:6]
     rgb = [int(hash_object[i:i+2], 16) for i in (0, 2, 4)]
@@ -89,13 +88,17 @@ def render_plate(data,filename):
     pygame.quit()
     pass
 
-map_data = load_map(f"plate{0}")
-for id in map_data["blocks"]:
-    map_data["blocks"][id]["history"] = []
+# main view loop
+base_map = load_map(f"plate{0}")
+
+for id in base_map["blocks"]:
+    base_map["blocks"][id]["history"] = []
+
 for n in range(1,10):
     new = load_map(f"plate{n}")
-    for id in map_data["blocks"]:
-        map_data["blocks"][id]["history"].append(map_data["blocks"][id]["plate_id"])
-        map_data["blocks"][id]["plate_id"] = new["blocks"][id]["plate_id"]
-    render_plate(map_data,f"plate{n}")
-render_plate(map_data,f"plate_history")
+    for id in base_map["blocks"]:
+        base_map["blocks"][id]["history"].append(base_map["blocks"][id]["plate_id"])
+        base_map["blocks"][id]["plate_id"] = new["blocks"][id]["plate_id"]
+    render_plate(base_map,f"plate{n}")
+render_plate(base_map,f"plate_history")
+save_map(f"changemap", base_map)
