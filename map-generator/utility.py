@@ -69,3 +69,20 @@ def norm_tuple(a):
     if mag == 0:
         return a
     return mut_tuple(a,1/mag)
+
+def map_block(func):
+    
+    def wrapper(map_data):
+        width = map_data["settings"]["width"]
+        height = map_data["settings"]["height"]
+        for x in range(width):
+            for y in range(height):
+                id = index(map_data,x,y)
+                block = map_data["blocks"][id]
+                func((x,y),block)
+                pass
+            pass
+        pass
+    
+    return wrapper
+    
