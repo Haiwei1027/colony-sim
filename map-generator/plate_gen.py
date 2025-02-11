@@ -1,6 +1,7 @@
 # this file will be responsible for plate map
 
 import random
+from noise import pnoise2
 
 map_data = {"settings":{},"blocks":{},"plates":{}}
 
@@ -29,21 +30,22 @@ for i in range(15):
                   random.randint(0,height)))
     pass
 
-def noise_vector(x, y, scale=100.0, octaves=2):
+def noise_vector(x, y, scale=200.0, octaves=2):
         noise_value = pnoise2(x / scale, y / scale, octaves=octaves)
     
         angle = noise_value * 2 * math.pi
-        
+
         vector = angle_vector(angle)
         
         return vector
 
 def node_dists(node,nodes,noise_factor=200):
     dist_table = []
-    for i,node in enumerate(nodes):
-        dist = distance((x,y),node)
+    for i,nodek in enumerate(nodes):
+        x,y = node
+        dist = distance((x,y),nodek)
         
-        noise = (pnoise2((x-node[0]) / width * 10,(y-node[1]) / height * 10,octaves=4)+1)/2
+        noise = (pnoise2((x-nodek[0]) / width * 10,(y-nodek[1]) / height * 10,octaves=4)+1)/2
         
         dist += noise * noise_factor
         
@@ -55,11 +57,11 @@ def node_dists(node,nodes,noise_factor=200):
 
 iterations = 10
 # how strongly do plates get pushed from border
-center_factor = 10
+center_factor = 15
 # how much the nodes repel each other
-repel_factor = 40
+repel_factor = 20
 # [0,1]
-brownian_factor = 10
+brownian_factor = 40
 # how much the "mantle" vector field affects the node
 drift_factor = 40
 

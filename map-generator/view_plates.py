@@ -11,7 +11,7 @@ def plate_color(number):
     max_val = max(rgb)
     return tuple(min(255, int(c * 255 / max_val)) for c in rgb)
 
-def render_plate(data,filename):
+def render_plate_boundary(data,filename):
     pygame.init()
     
     width = data["settings"]["width"]
@@ -32,6 +32,7 @@ def render_plate(data,filename):
     
     for plate_id in data["plates"]:
         plate = data["plates"][plate_id]
+        pygame.draw.circle(screen,(0,0,0),plate["center"],10)
         pygame.draw.line(screen,pygame.Color(0,0,0),plate["center"],
                          lerp(plate["center"], add_tuple(plate["center"],plate["direction"]),100))
     
@@ -58,18 +59,17 @@ def render_plate(data,filename):
     screen = pygame.display.set_mode((width,height))
     
     # draw blocks coloured by history
-    
     screen.fill(pygame.Color(0,0,200))
     for x in range(width):
         for y in range(height):
             id = index(data,x,y)
             block = data["blocks"][id]
-            if len(set(block["history"])) < 2:
-                continue
-            pygame.draw.rect(screen,pygame.Color(0,len(set(block["history"]))*20,0), (x,y,1,1))
+            if len(set(block["history"])) < 3:
+                pygame.draw.rect(screen,pygame.Color(0,0,len(set(block["history"]))*20), (x,y,1,1))
+            else:
+                pygame.draw.rect(screen,pygame.Color(0,len(set(block["history"]))*20,0), (x,y,1,1))
     
     # draw plate drift vectors
-    
     for plate_id in data["plates"]:
         plate = data["plates"][plate_id]
         pygame.draw.circle(screen,(0,0,0),plate["center"],10)
@@ -98,4 +98,4 @@ for n in range(1,10):
         map_data["blocks"][id]["history"].append(map_data["blocks"][id]["plate_id"])
         map_data["blocks"][id]["plate_id"] = new["blocks"][id]["plate_id"]
     render_plate(map_data,f"plate{n}")
-#render_plate(map_data,f"plate_history")
+render_plate(map_data,f"plate_history")
