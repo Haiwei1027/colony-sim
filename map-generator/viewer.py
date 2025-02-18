@@ -2,6 +2,7 @@ import time
 
 from utility import *
 from map import Map
+
 class Viewer:
     
     def __init__(self:Self, _map:'Map') -> None:
@@ -79,6 +80,9 @@ class Viewer:
                     break
                 if event.type == pygame.KEYDOWN:
                     keys_held.add(event.key)
+                    if pygame.K_SPACE == event.key:
+                        global t
+                        self.render()
                 if event.type == pygame.KEYUP:
                     if event.key in keys_held:
                         keys_held.remove(event.key)

@@ -34,10 +34,16 @@ class Map:
         return self.point_in_bound(top_left) and self.point_in_bound(bottom_right)
     
     def foreach(self:Self,func:Callable[[tuple[int,int],dict],None]):
+        threads = []
         for x in range(int(self.size.x)):
             for y in range(int(self.size.y)):
-                func((x,y), self.grid[x][y])
-                pass
+                print(x,y)
+                thread = Process(target=func, args=((x, y), self.grid[x][y]))
+                threads.append(thread)
+                thread.start()
+
+        for thread in threads:
+            thread.join()
             pass
         pass
     
