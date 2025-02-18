@@ -3,3 +3,4 @@ build
 out
 *.pyc
 map-generator/__pycache__
+map-generator/output
