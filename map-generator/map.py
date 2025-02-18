@@ -1,5 +1,3 @@
-from pygame.math import Vector2
-from pygame.rect import Rect
 from utility import *
 class Map:
     
@@ -9,24 +7,15 @@ class Map:
         self.grid = {x:{y:{} for y in range(int(size.y))} for x in range(int(size.x))}
         pass
     
-    def to_dict(self:'Map') -> dict:
-        return {
-            "name":self.name,
-            "size":(self.size.x,self.size.y),
-            "grid":self.grid
-        }
-    @classmethod
-    def from_dict(cls:'Map', data:dict):
-        map = Map(data["name"],Vector2(data["size"]))
-        map.grid = data["grid"]
-        return map
-    
     def save(self:'Map') -> None:
-        save_map(self.to_dict(),self.name)
+        with open(f"output/{self.name}.map","wb+") as file:
+            pickle.dump(self, file)
+            pass
         pass
     @classmethod
     def load(cls:'Map', name:str) -> 'Map':
-        return Map.from_dict(load_map(name))
+        with open(f"output/{name}.map", "rb") as file:
+            return pickle.load(file)
     
     def point_in_bound(self:'Map', point:Vector2):
         if point.x < 0:

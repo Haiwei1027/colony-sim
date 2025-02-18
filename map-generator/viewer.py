@@ -1,10 +1,9 @@
-from map import Map
 import pygame
 from pygame import Surface
-from pygame import Rect
-from pygame.math import Vector2
 import time
 
+from utility import *
+from map import Map
 class Viewer:
     
     def __init__(self:'Viewer', _map:'Map') -> None:
@@ -24,9 +23,8 @@ class Viewer:
                 pass
             pass    
         pass
-    
     def draw_block(self:'Viewer',pos:Vector2, block:dict):
-        self.surface.set_at(pos,(pos.x%255,pos.y%255))
+        self.surface.set_at((int(pos.x),int(pos.y)),(int(pos.x)%255,0,int(pos.y)%255))
         pass
     
     def move_view(self:'Viewer', keys_held:set[int]) -> None:
