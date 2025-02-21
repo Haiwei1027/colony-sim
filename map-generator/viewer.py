@@ -13,7 +13,7 @@ class Viewer:
     
     @classmethod
     def load(cls:Self,name:str) -> 'Viewer':
-        return Viewer(Map.load(name))
+        return cls(Map.load(name))
     
     def render(self:Self) -> None:
         for x in range(self.surface.get_width()):
@@ -49,6 +49,10 @@ class Viewer:
             self.viewing_area = new_rect
         pass
     
+    def handle_key(self:Self, key:int):
+        if pygame.K_SPACE == key:
+            self.render()
+    
     def start(self:Self) -> None:
         pygame.init()
         
@@ -80,9 +84,7 @@ class Viewer:
                     break
                 if event.type == pygame.KEYDOWN:
                     keys_held.add(event.key)
-                    if pygame.K_SPACE == event.key:
-                        global t
-                        self.render()
+                    self.handle_key(event.key)
                 if event.type == pygame.KEYUP:
                     if event.key in keys_held:
                         keys_held.remove(event.key)

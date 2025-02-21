@@ -10,7 +10,7 @@ _map.name = "plate"
 
 width,height = vec_tuple(_map.size)
 
-seed = 536312
+seed = 53631
 size_scaler = (width//800) * (height//800)
 
 nodes = []
@@ -31,8 +31,9 @@ def node_dists(node:Vector2,nodes:list[Vector2],noise_factor:int=200):
         
         dist = delta.magnitude()
         
-        noise = (pnoise3(delta.x / width * 10,delta.y / height * 10, seed,octaves=4)+1)/2
-        
+        noise = 0
+        if noise_factor != 0:
+            noise = (pnoise2(delta.x / width * 10 + seed,delta.y / height * 10 + seed,octaves=2)+1)/2
         dist += noise * noise_factor
         
         dist_table.append((i,dist))
@@ -41,7 +42,7 @@ def node_dists(node:Vector2,nodes:list[Vector2],noise_factor:int=200):
 
 # redistribute plate nodes
 
-iterations = 10
+iterations = 5
 # how strongly do plates get pushed from border
 center_factor = 15 * size_scaler
 # how much the nodes repel each other
@@ -57,7 +58,6 @@ for n in range(iterations):
     for i,node in enumerate(nodes):
         node:Vector2
         drift_force = noise_vector(node.x,node.y,n)
-        force = Vector2(0,0)
         # drift
         drift_force *= drift_factor
         brownian_force = Vector2(1,0).rotate(random.randint(0,360)) * brownian_factor
@@ -66,42 +66,30 @@ for n in range(iterations):
         dist_table = node_dists(node, [n for n in nodes if n != node], noise_factor=0)
         dist_table.sort(key=lambda x:x[1])
         nearest_node:Vector2 = nodes[dist_table[1][0]]
-        repel_force = (node - nearest_node).normalize() * repel_factor
+        repel_force = Vector2(0,0)
+        if (node - nearest_node).magnitude() != 0:
+            repel_force = (node - nearest_node).normalize() * repel_factor
         
-        force += drift_force
-        force += brownian_force
-        force += center_force
-        force += repel_force
+        node += drift_force
+        node += brownian_force
+        node += center_force
+        node += repel_force
         
-        #node = add_tuple(node,mut_tuple(noise_vector(node[0],node[1]),drift_factor))
-        # brownian motion
-        #node = lerp(node,(random.randint(0,width-1),random.randint(0,height-1)), random_factor)
-        # repell from border
-        #if border_dist(map_data,node[0],node[1]) < 100:
-            #node = lerp(node,(width//2,height//2), center_factor)
-        # repell from other
-        #for j,other in enumerate(nodes):
-            #if i == j:
-                #continue
-            #node = lerp(node,other,repel_factor/distance(node,other))
-        node = node + force
-        nodes[i] = node
         _map.plates[n].append({"center":node,"direction":drift_force})
 
     # assign block to the nearest plate node
-        def assign_plate(pos, block):
-            dist_table = node_dists(Vector2(pos), nodes, noise_factor=200)
-            
-            dist_table.sort(key=lambda x:x[1])
-            if "plate_id" not in block:
-                block["plate_id"] = {}
-            block["plate_id"][n] = dist_table[0][0]
-            
-            pass
-        _map.foreach(assign_plate)
-            
+    def assign_plate(pos, block):
+        dist_table = node_dists(Vector2(pos), nodes, noise_factor=100)
+        
+        dist_table.sort(key=lambda x:x[1])
+        if "plate_id" not in block:
+            block["plate_id"] = {}
+        block["plate_id"][n] = dist_table[0][0]
+        
         pass
-    
-    # save map data
+    _map.foreach(assign_plate)
+            
+    pass
+# save map data
 _map.save()
     

@@ -1,7 +1,8 @@
 from utility import *
+
 class Map:
     
-    def __init__(self:Self, name:str = "base",size:Vector2 = Vector2(1024,1024)):
+    def __init__(self:Self, name:str = "base",size:Vector2 = Vector2(800,800)):
         self.name = name
         self.size = size
         self.grid = {x:{y:{} for y in range(int(size.y))} for x in range(int(size.x))}
@@ -33,19 +34,13 @@ class Map:
         bottom_right:Vector2 = Vector2(rect.bottomright)
         return self.point_in_bound(top_left) and self.point_in_bound(bottom_right)
     
-    def foreach(self:Self,func:Callable[[tuple[int,int],dict],None]):
-        threads = []
-        for x in range(int(self.size.x)):
-            for y in range(int(self.size.y)):
-                print(x,y)
-                thread = Process(target=func, args=((x, y), self.grid[x][y]))
-                threads.append(thread)
-                thread.start()
+    from multiprocessing import Pool
 
-        for thread in threads:
-            thread.join()
-            pass
-        pass
+    def foreach(self, func:Callable[[tuple[int, int], dict], None]):
+        for x in range(int(self.size.x)):
+            print(x) if x % 100 == 0 else ...
+            for y in range(int(self.size.y)):
+                func((x, y), self.grid[x][y])
     
     pass
 
