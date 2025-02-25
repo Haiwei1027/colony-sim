@@ -1,52 +1,39 @@
-# this file will be responsible for plate map
-
-import random
-from noise import pnoise2
-
-map_data = {"settings":{},"blocks":{},"plates":{}}
-
-# populate with cells
-
-width = 800
-height = 800
-
-map_data["settings"]["width"] = width
-map_data["settings"]["height"]  = height
-
 from utility import *
+from map import Map
 
-for x in range(width):
-    for y in range(height):
-        id = index(map_data,x,y)
-        map_data["blocks"][id] = {"plate_id":-1}
-        pass
-    pass
+if __name__ != "__main__":
+    quit()
+    exit()
 
-# add random plate nodes
+_map:'Map' = Map.load("base")
+_map.name = "plate"
+
+width,height = vec_tuple(_map.size)
+
+seed = 53631
+size_scaler = (width//800) * (height//800)
 
 nodes = []
-for i in range(15):
-    nodes.append((random.randint(0,width),
-                  random.randint(0,height)))
+for _ in range(15 * size_scaler):
+    nodes.append(Vector2(random.randint(0,width), random.randint(0,height)))
     pass
 
-def noise_vector(x, y, scale=200.0, octaves=2):
-        noise_value = pnoise2(x / scale, y / scale, octaves=octaves)
-    
-        angle = noise_value * 2 * math.pi
+def noise_vector(x, y, t, spatial_scale=600,temporal_scale=15, octaves=3):
+    noise_value = snoise3(x/spatial_scale, y/spatial_scale, t/temporal_scale, octaves=octaves)
+    angle = noise_value * 2 * math.pi
+    return Vector2(1,0).rotate_rad(angle)
 
-        vector = angle_vector(angle)
-        
-        return vector
-
-def node_dists(node,nodes,noise_factor=200):
-    dist_table = []
-    for i,nodek in enumerate(nodes):
+def node_dists(node:Vector2,nodes:list[Vector2],noise_factor:int=200):
+    dist_table:list[int] = []
+    for i,other in enumerate(nodes):
         x,y = node
-        dist = distance((x,y),nodek)
+        delta = node - other
         
-        noise = (pnoise2((x-nodek[0]) / width * 10,(y-nodek[1]) / height * 10,octaves=4)+1)/2
+        dist = delta.magnitude()
         
+        noise = 0
+        if noise_factor != 0:
+            noise = (pnoise2(delta.x / width * 10 + seed,delta.y / height * 10 + seed,octaves=2)+1)/2
         dist += noise * noise_factor
         
         dist_table.append((i,dist))
@@ -55,66 +42,54 @@ def node_dists(node,nodes,noise_factor=200):
 
 # redistribute plate nodes
 
-iterations = 10
+iterations = 5
 # how strongly do plates get pushed from border
-center_factor = 15
+center_factor = 15 * size_scaler
 # how much the nodes repel each other
-repel_factor = 20
+repel_factor = 20 * size_scaler
 # [0,1]
-brownian_factor = 40
+brownian_factor = 40 * size_scaler
 # how much the "mantle" vector field affects the node
-drift_factor = 40
-
+drift_factor = 40 * size_scaler
+_map.plates = {}
 for n in range(iterations):
-    
+    _map.plates[n] = []
     print(f"n:{n}")
     for i,node in enumerate(nodes):
-        drift_dir = noise_vector(node[0],node[1])
-        force = (0,0)
+        node:Vector2
+        drift_force = noise_vector(node.x,node.y,n)
         # drift
-        drift_force = mut_tuple(drift_dir, drift_factor)
-        brownian_force = mut_tuple(angle_vector(random.random()*2*math.pi), brownian_factor)
-        center = (width//2,height//2)
-        center_force = mut_tuple(norm_tuple(sub_tuple(center,node)),center_factor)
+        drift_force *= drift_factor
+        brownian_force = Vector2(1,0).rotate(random.randint(0,360)) * brownian_factor
+        center = _map.size / 2
+        center_force = (center - node).normalize() * center_factor
         dist_table = node_dists(node, [n for n in nodes if n != node], noise_factor=0)
         dist_table.sort(key=lambda x:x[1])
-        nearest_node = nodes[dist_table[0][0]]
-        repel_force = mut_tuple(norm_tuple(sub_tuple(node,nearest_node)),repel_factor)
+        nearest_node:Vector2 = nodes[dist_table[1][0]]
+        repel_force = Vector2(0,0)
+        if (node - nearest_node).magnitude() != 0:
+            repel_force = (node - nearest_node).normalize() * repel_factor
         
-        force = add_tuple(force,drift_force)
-        force = add_tuple(force,brownian_force)
-        force = add_tuple(force,center_force)
-        force = add_tuple(force,repel_force)
+        node += drift_force
+        node += brownian_force
+        node += center_force
+        node += repel_force
         
-        #node = add_tuple(node,mut_tuple(noise_vector(node[0],node[1]),drift_factor))
-        # brownian motion
-        #node = lerp(node,(random.randint(0,width-1),random.randint(0,height-1)), random_factor)
-        # repell from border
-        #if border_dist(map_data,node[0],node[1]) < 100:
-            #node = lerp(node,(width//2,height//2), center_factor)
-        # repell from other
-        #for j,other in enumerate(nodes):
-            #if i == j:
-                #continue
-            #node = lerp(node,other,repel_factor/distance(node,other))
-        node = add_tuple(node,force)
-        nodes[i] = node
-        map_data["plates"][i] = {"center":node,"direction":drift_dir}
+        _map.plates[n].append({"center":node,"direction":drift_force})
 
     # assign block to the nearest plate node
-
-    for x in range(width):
-        for y in range(height):
-            id = index(map_data,x,y)
-            dist_table = node_dists((x,y), nodes, noise_factor=200)
-            
-            dist_table.sort(key=lambda x:x[1])
-            
-            map_data["blocks"][id]["plate_id"] = dist_table[0][0]
-            
-            pass
+    def assign_plate(pos, block):
+        dist_table = node_dists(Vector2(pos), nodes, noise_factor=100)
+        
+        dist_table.sort(key=lambda x:x[1])
+        if "plate_id" not in block:
+            block["plate_id"] = {}
+        block["plate_id"][n] = dist_table[0][0]
+        
         pass
+    _map.foreach(assign_plate)
+            
+    pass
+# save map data
+_map.save()
     
-    # save map data
-
-    save_map(f"plate{n}",map_data)
