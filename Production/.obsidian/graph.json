@@ -1,0 +1,86 @@
+{
+  "collapse-filter": false,
+  "search": "",
+  "showTags": false,
+  "showAttachments": false,
+  "hideUnresolved": false,
+  "showOrphans": true,
+  "collapse-color-groups": false,
+  "colorGroups": [
+    {
+      "query": "tag:#source  ",
+      "color": {
+        "a": 1,
+        "rgb": 262399
+      }
+    },
+    {
+      "query": "tag:#resource",
+      "color": {
+        "a": 1,
+        "rgb": 15013141
+      }
+    },
+    {
+      "query": "tag:#production  ",
+      "color": {
+        "a": 1,
+        "rgb": 11810230
+      }
+    },
+    {
+      "query": "tag:#part  ",
+      "color": {
+        "a": 1,
+        "rgb": 15069734
+      }
+    },
+    {
+      "query": "tag:#tool  ",
+      "color": {
+        "a": 1,
+        "rgb": 2227694
+      }
+    },
+    {
+      "query": "tag:#workstaton  ",
+      "color": {
+        "a": 1,
+        "rgb": 1629212
+      }
+    },
+    {
+      "query": "tag:#collection  ",
+      "color": {
+        "a": 1,
+        "rgb": 8406016
+      }
+    },
+    {
+      "query": "tag:#consumer  ",
+      "color": {
+        "a": 1,
+        "rgb": 16777215
+      }
+    },
+    {
+      "query": "tag:#material",
+      "color": {
+        "a": 1,
+        "rgb": 16746496
+      }
+    }
+  ],
+  "collapse-display": false,
+  "showArrow": false,
+  "textFadeMultiplier": -3,
+  "nodeSizeMultiplier": 1,
+  "lineSizeMultiplier": 1.51916632016632,
+  "collapse-forces": true,
+  "centerStrength": 0.518713248970312,
+  "repelStrength": 10,
+  "linkStrength": 1,
+  "linkDistance": 250,
+  "scale": 0.5461733917947983,
+  "close": true
+}
